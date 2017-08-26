@@ -1,3 +1,5 @@
+"use strict"
+
 function iTable(tContainer, tSettings, tabs) {
 	this.rowCount = tSettings.rowCount;
 	this.cellCount = tSettings.cellCount;
@@ -16,13 +18,28 @@ iTable.prototype.createContent = function(tid) {
 
 	for(var i = 0; i < this.rowCount; i++) {
 		var tr = this.createTr();
-		$("#iTable" + tId).append(tr);
-		for(var j = 0; j < this.cellCount; j++) {
-			var td = this.createTd('', '');
-
+		var th=$('<th></th>');
+		var colg=$('<colgroup></colgroup>');
+		tr.append(th);
+		for(var j = 0; j < this.cellCount+1; j++) {
+			var td = this.createTd('','');
+           
+            if(j==0){
+            	var col=$('<col style="width:63px">');
+            }else{
+            	 var col=$('<col style="width:100px">');
+            }
+            colg.append(col);
+            
+//          tr.append(th);
+            if(i==0){
+			$("#iTable" + tId).append(colg); 
+		    }
+            
 			tr.append(td);
 		}
-
+		
+        $("#iTable" + tId).append(tr);  
 	}
 	this.setIndex();
 
@@ -42,52 +59,56 @@ iTable.prototype.createXaxis = function() {
 	var xAxis = $("<div class='xOrder'></div>");
 	xAxis.empty();
 	var xTable = $("<table class='titleTable'></table>");
-	var xTdWidth = [];
 	var curT = this.getCurTable();
 	var firTds = curT.find('tr:first td');
-
+    var th=$('<th></th>');
 	xAxis.insertBefore(this.container);
 	xAxis.append(xTable);
+	var tr = $("<tr></tr>");
+	tr.append(th);
 	for(var i = 0; i < 1; i++) {
-		var tr = $("<tr></tr>");
-
-		tr.appendTo($(".titleTable"));
-
-		for(var j = 0; j < this.cellCount; j++) {
+		
+		var colg=$('<colgroup></colgroup>');
+		for(var j = 0; j < this.cellCount+1; j++) {
 			var td = $("<td>" + IntToChr(j) + "</td>");
-
-			td.appendTo(tr);
+			if(j==0){
+				var col=$('<col style="width:63px">');
+			}else{
+				var col=$('<col style="width:100px">'); 
+			}
+            
+             colg.append(col);
+            if(i==0){
+			xTable.append(colg); 
+		    }
+			tr.append(td);
 		}
-
+        xTable.append(tr); 
 	}
 
 }
 iTable.prototype.createYaxis = function() {
 	var yAxis = $("<div class='yOrder'></div>");
 	var yTable = $("<table class='leftTable'></table>");
-
 	yAxis.empty();
 	yAxis.insertBefore(this.container);
 	yAxis.append(yTable);
 	for(var i = 0; i < this.rowCount; i++) {
 		var tr = $("<tr></tr>");
-
-		tr.appendTo($(".leftTable"));
-
+		var colg=$('<colgroup></colgroup>'); 
 		for(var j = 0; j < 1; j++) {
 			var th = $("<td>" + (i + 1) + "</td>");
 			th.appendTo(tr);
 		}
-
+        yTable.append(tr);
 	}
 }
 iTable.prototype.createTip = function() {
-	var content = $('<div></div>');
-	tLeft = $('.yOrder');
-	tHead = $('.xOrder');
-
-	bLeft = tLeft.find('table tr:first td:first').outerWidth();
-	bTop = tHead.find('table tr:first td:first').outerHeight();
+	var content = $('<div></div>'),
+		tLeft = $('.yOrder'),
+		tHead = $('.xOrder');
+	var bLeft = tLeft.find('table tr:first td:first').outerWidth(),
+		bTop = tHead.find('table tr:first td:first').outerHeight();
 	content.css({
 		'position': 'fixed',
 		'background': '#f5f5f5',
@@ -100,7 +121,8 @@ iTable.prototype.createTip = function() {
 		'border-bottom': '1px solid #AAAAAA',
 		'margin-top': '70px'
 	});
-	content.insertBefore(this.container);
+//	content.insertBefore(this.container);
+    $(this.container).append(content);
 }
 
 iTable.prototype.frameSelect = function() {
@@ -112,7 +134,6 @@ iTable.prototype.frameSelect = function() {
 	var disHeight = parseInt($('.xOrder').outerHeight()) + parseInt($('.header').outerHeight());
 
 	$(this.container).on('mousedown', function() {
-		var selList = null;
 		var fileNodes = $('.dataTable tr td');
 
 		var isSelect = true;
@@ -120,7 +141,7 @@ iTable.prototype.frameSelect = function() {
 		var sleft = parseInt($(this).scrollLeft());
 		var stop = parseInt($(this).scrollTop());
 
-		var oX = ev.clientX - disWidth + sleft;
+		var oX = ev.clientX  + sleft;
 		var oY = ev.clientY - disHeight + stop;
 
 		var selDiv = $('<div class="mapdiv"></div>');
@@ -154,13 +175,13 @@ iTable.prototype.frameSelect = function() {
 			var sleft = $(this).scrollLeft();
 			var stop = $(this).scrollTop();
 			if(isSelect) {
-				if(selDiv.css('display') == "none") {
-					selDiv.css('display', 'none');
-				}
+//				if(selDiv.css('display') == "none") {
+//					selDiv.css('display', 'none');
+//				}
 				_x = (evt.x || evt.clientX);
 				_y = (evt.y || evt.clientY);
 
-				_x = _x + sleft - disWidth;
+				_x = _x + sleft ;
 				_y = _y + stop - disHeight;
 
 				selDiv.css({
@@ -214,6 +235,7 @@ iTable.prototype.frameSelect = function() {
 
 					}
 				}
+
 				that.lightCoor($('.ui-selected'));
 			}
 
@@ -222,7 +244,6 @@ iTable.prototype.frameSelect = function() {
 		$(document).off('mouseup').on('mouseup', function() {
 			isSelect = false;
 			selDiv && selDiv.remove();
-			selList = null, _x = null, _y = null, selDiv = null, startX = null, startY = null, evt = null;
 		});
 
 	});
@@ -251,7 +272,6 @@ Array.prototype.max = function() {
 }
 
 iTable.prototype.keyCursor = function() {
-	var event = window.event || arguments[0];
 	var that = this;
 	$(document).off('keydown').on('keydown', {
 		time: "0",
@@ -735,15 +755,13 @@ iTable.prototype.getCurTable = function() {
 }
 
 iTable.prototype.setCss = function() {
-	var viewWidth = $(window).width();
-	var viewHeight = $(window).height();
-	tBody = this.getCurTable().parent();
-
-	tLeft = $('.yOrder');
-	tHead = $('.xOrder');
-
-	bLeft = tLeft.find('table tr:first td:first').outerWidth() + 1;
-	bTop = tHead.find('table tr:first td:first').outerHeight() + 1;
+	var viewWidth = $(window).width(),
+		viewHeight = $(window).height();
+	var tBody = this.getCurTable().parent(),
+		tLeft = $('.yOrder'),
+		tHead = $('.xOrder');
+	var bLeft = tLeft.find('table tr:first td:first').outerWidth() + 1;
+	var bTop = tHead.find('table tr:first td:first').outerHeight() + 1;
 
 	tLeft.css({
 		'position': 'fixed',
@@ -757,17 +775,17 @@ iTable.prototype.setCss = function() {
 		'position': 'fixed',
 		'z-index': '100',
 		'background': '#f5f5f5',
-		'width': viewWidth - bLeft,
+		'width': viewWidth,
 		'overflow': 'hidden',
-		'margin-left': bLeft,
+		'margin-left': 4,
 		'margin-top': '70px',
 		'top': '0'
 	});
 
 	tBody.css({
-		'margin-left': bLeft,
+		'margin-left': 4,
 		'margin-top': bTop + 70,
-		'width': viewWidth - bLeft,
+		'width': viewWidth-4,
 		'height': viewHeight - bTop - 110,
 		'overflow': 'scroll',
 		'position': 'relative'
@@ -777,8 +795,10 @@ iTable.prototype.setCss = function() {
 	$(window).resize(function() {
 		var viewWidth = $(window).width();
 		var viewHeight = $(window).height();
-		that.width(viewWidth - bLeft);
+		that.width(viewWidth-4);
 		that.height(viewHeight - bTop - 113);
+		
+		
 	});
 
 }
@@ -787,7 +807,6 @@ iTable.prototype.tableScroll = function() {
 	this.container.scroll(function() {
 		var scrollY = $(this).scrollTop();
 		var scrollX = $(this).scrollLeft();
-
 		$(".yOrder table").css('margin-top', -scrollY);
 		$(".xOrder table").css('margin-left', -scrollX);
 
@@ -796,66 +815,45 @@ iTable.prototype.tableScroll = function() {
 
 //填写表格
 iTable.prototype.fillTd = function(tid) {
-
+	var event = window.event || arguments[0];
 	var tid = tid || 1;;
-	var _self = this;
+	var that = this;
 	$('#iTable' + tid).find('tr td').each(function() {
-
 		$(this).dblclick(function() {
-
-			var that = $(this);
-			var ev = ev || window.event;
-
-			var tdWidth = that.width();
-			var tdHeight = that.height();
-			var tdText = that.text();
-
+			var tdWidth = $(this).width();
+			var tdHeight = $(this).height();
+			var tdText = $(this).text();
 			var tdInput = $("<input type='text'  id='tdInput' class='tdInput'  value='" + tdText + "'></input>");
-
 			tdInput.width(tdWidth - 2);
 			tdInput.height(tdHeight - 2);
 
-			that.html(tdInput);
-
+			$(this).html(tdInput);
 			set_text_value_position(tdInput, -1);
+
 			$('.tdInput').keyup(function() {
 				$('#ip_fx').val($(this).val());
-				_self.typingTd();
 			});
 
 			$('.tdInput').blur(function() {
-
 				var content = $('.tdInput').val();
-
 				if(tdText == content) {
-
 					$(this).parent().html(content);
-
 				} else {
-
 					$(this).parent().html(content);
-
 				}
 				$('.tdInput').remove();
-
 			});
 
-			$(".tdInput").keyup(function(ev) {
-				if(ev.keyCode == 13) {
-					var pNode = $(this).parent();
-					var x = parseInt($(pNode).attr('cols')) - 1;
-					var y = parseInt($(pNode).attr('rows'));
-					pNode.removeClass('ui-selected');
-					$("[pos='" + y + "-" + x + "']").addClass('ui-selected');
+			$(".tdInput").keyup(function(event) {
+				if(event.keyCode == 13) {
 					$('.tdInput').blur();
 					$(document).on('keyup', typing);
 				}
 			});
-			$(".tdInput").click(function(ev) {
+			$(".tdInput").click(function(event) {
 				return false;
 			});
-			$('#iTable' + tid + ' tr td').not(that).click(function(event) {
-
+			$('#iTable' + tid + ' tr td').not($(this)).click(function(event) {
 				$('.tdInput').blur();
 			});
 
@@ -868,26 +866,11 @@ iTable.prototype.fillTd = function(tid) {
 			$(this).addClass('ui-selected');
 			var xCoo = Number($(this).attr('cols')) - 1,
 				yCoo = Number($(this).attr('rows')) - 1;
-			var colspan = Number($(this).attr('colspan'));
-			var rowspan = Number($(this).attr('rowspan'));
-
-			colspan = colspan || 1;
-			rowspan = rowspan || 1;
-
-			var xIndex = $(this).index() + 1;
-			var yIndex = $(this).parent().index() + 1;
-			var targetY = $(".yOrder table").find('tr:eq(' + yCoo + ')');
-			var targetX = $(".xOrder table").find('tr td:eq(' + xCoo + ')');
 			if($('.disbox').length > 0) {
 				$('.disbox').text(IntToChr(xCoo) + String(yCoo + 1));
 			}
-
-			//_self.remakeRow(targetY, yCoo, xIndex, yIndex, rowspan, colspan);
-			//_self.remakeCol(targetX, xCoo, xIndex, yIndex, rowspan, colspan, xCoo, yCoo);
-			_self.tdTofx($(this));
-			_self.lightCoor($(this));
-			removeUied();
-			//_self.findSpan($(this));
+			that.tdTofx($(this));
+			that.lightCoor($(this));
 			$('#ip_fx').blur();
 
 		});
@@ -898,7 +881,6 @@ iTable.prototype.fillTd = function(tid) {
 			if(len > 10) {
 				$('body').append(div);
 				var dis = mouseCoords();
-
 				div.css({
 					'position': 'absolute',
 					'top': dis.y,
@@ -923,7 +905,6 @@ iTable.prototype.lightCoor = function(obj) {
 	$('.leftTable tr td').removeClass('lCoo');
 	$('.titleTable tr td').removeClass('lCoo');
 	for(var t = 0; t < target.length; t++) {
-
 		var cols = parseInt($(target).eq(t).attr('cols')) - 1;
 		var rows = parseInt($(target).eq(t).attr('rows')) - 1;
 		var cSpan = parseInt($(target).eq(t).attr('colspan')) - 1 || 0;
@@ -933,45 +914,15 @@ iTable.prototype.lightCoor = function(obj) {
 			$('.leftTable').find('tr').eq(i).find('td').addClass('lCoo');
 		}
 		for(var j = cols; j < cols + cSpan + 1; j++) {
-			$('.titleTable tr').find('td').eq(j).addClass('lCoo');
+			$('.titleTable tr').find('td').eq(j-1).addClass('lCoo');
 		}
 
 	}
 
 }
 
-iTable.prototype.editRowCol = function(tid) {
-	var tid = tid || 1;;
-	var _self = this;
-	$('#iTable' + tid).find('tr td').each(function() {
-		$(this).click(function() {
-
-			var tr = $(this).parent();
-			$('.dataTable').find('td').removeClass('ui-selected');
-			$(this).addClass('ui-selected');
-			var xCoo = Number($(this).attr('cols')) - 1,
-				yCoo = Number($(this).attr('rows')) - 1;
-			var colspan = Number($(this).attr('colspan'));
-			var rowspan = Number($(this).attr('rowspan'));
-
-			colspan = colspan || 1;
-			rowspan = rowspan || 1;
-
-			var xIndex = $(this).index() + 1;
-			var yIndex = $(this).parent().index() + 1;
-			var targetY = $(".yOrder table").find('tr:eq(' + yCoo + ')');
-			var targetX = $(".xOrder table").find('tr td:eq(' + xCoo + ')');
-			$('.disbox').text(IntToChr(xCoo) + String(yCoo + 1));
-
-			//_self.remakeRow(targetY, yCoo, xIndex, yIndex, rowspan, colspan);
-			//_self.remakeCol(targetX, xCoo, xIndex, yIndex, rowspan, colspan, xCoo, yCoo);
-			//_self.tdTofx($(this));
-			removeUied();
-			//$('#ip_fx').blur();
-
-		});
-
-	});
+iTable.prototype._try=function(){
+	 
 }
 
 function getStrLength(str) {
@@ -1034,11 +985,11 @@ iTable.prototype.createHeader = function() {
 
 //字体类型
 iTable.prototype.fontFamily = function() {
-	var select = this.createSelection('fontFamily', this.settings.fontFamily);
-	var sel_a = $(select[0]).find('ul li a');
+	var menu = this.createSelection('fontFamily', this.settings.fontFamily);
+	var sel_a = $(menu).find('ul li a');
+	$(menu).find('#fontFamily').attr('defaultClass',sel_a.eq(0).attr('class'));
 	var className, curClass;
 	var selThem;
-
 	sel_a.on('click', function() {
 
 		className = $(this).attr('class');
@@ -1055,7 +1006,7 @@ iTable.prototype.fontFamily = function() {
 		var arr = curClass.split(' ');
 		curClass = removeDuplicatedItem(arr);
 		selThem = $('.ui-selected');
-		removeUied();
+
 		$('.ui-selected').removeAttr('class');
 		selThem.addClass(curClass);
 	});
@@ -1068,22 +1019,21 @@ iTable.prototype.fontFamily = function() {
 	});
 	sel_a.mouseout(function() {
 		$(this).css({
-			'background': '#FFFFFF'
+			'background':'#FFFFFF'
 		});
 	});
 
 }
 //字体大小
 iTable.prototype.fontSize = function() {
-	var select = this.createSelection('fontSize', this.settings.fontSize);
-	var sel_a = $(select[0]).find('ul li a');
+	var menu = this.createSelection('fontSize', this.settings.fontSize);
+	var sel_a = $(menu).find('ul li a');
+	$(menu).find('#fontFamily').attr('defaultClass',sel_a.eq(0).attr('class'));
 	var className, curClass;
 	var selThem;
 	sel_a.on('click', function() {
-
 		className = $(this).attr('class');
 		$('.ui-selected').addClass(className);
-
 		var reg = new RegExp("(((fsize_)[A-Za-z0-9_]+\s*)+)", "g");
 
 		curClass = $('.ui-selected').attr('class');
@@ -1095,7 +1045,7 @@ iTable.prototype.fontSize = function() {
 		var arr = curClass.split(' ');
 		curClass = removeDuplicatedItem(arr);
 		selThem = $('.ui-selected');
-		removeUied();
+
 		$('.ui-selected').removeAttr('class');
 
 		selThem.addClass(curClass);
@@ -1116,9 +1066,9 @@ iTable.prototype.fontSize = function() {
 //字体粗细
 iTable.prototype.fontBold = function() {
 	var simMenu = this.createSimpleMenu('fbold');
-	var sel_a = $(simMenu[0]).children(0);
+	var sel_a = $(simMenu).children(0);
 	sel_a.on('click', function() {
-		removeUied();
+
 		$('.ui-selected').hasClass('ffbold') ? $('.ui-selected').removeClass('ffbold') : $('.ui-selected').addClass('ffbold');
 
 	});
@@ -1127,9 +1077,9 @@ iTable.prototype.fontBold = function() {
 //字体倾斜
 iTable.prototype.fontItalic = function() {
 	var simMenu = this.createSimpleMenu('fitalic');
-	var sel_a = $(simMenu[0]).children(0);
+	var sel_a = $(simMenu).children(0);
 	sel_a.on('click', function() {
-		removeUied();
+
 		$('.ui-selected').hasClass('ffitalic') ? $('.ui-selected').removeClass('ffitalic') : $('.ui-selected').addClass('ffitalic');
 
 	});
@@ -1138,9 +1088,9 @@ iTable.prototype.fontItalic = function() {
 //字体下划线
 iTable.prototype.fontOverline = function() {
 	var simMenu = this.createSimpleMenu('foverline');
-	var sel_a = $(simMenu[0]).children(0);
+	var sel_a = $(simMenu).children(0);
 	sel_a.on('click', function() {
-		removeUied();
+
 		$('.ui-selected').hasClass('ffoverline') ? $('.ui-selected').removeClass('ffoverline') : $('.ui-selected').addClass('ffoverline');
 
 	});
@@ -1149,12 +1099,11 @@ iTable.prototype.fontOverline = function() {
 //字体颜色
 iTable.prototype.fontColor = function() {
 	var select = this.createCellMenu('d_fcolor', 'fontColor', this.settings.fontColor);
-	var td = $(select[0]).find('table tr td');
+	var td = $(select).find('table tr td');
 	var className, curClass;
 	var selThem;
 
 	td.on('click', function() {
-		removeUied();
 
 		className = $(this).find('a').attr('class');
 		$('.ui-selected').addClass(className);
@@ -1178,7 +1127,7 @@ iTable.prototype.fontColor = function() {
 //表格背景
 iTable.prototype.bgColor = function() {
 	var select = this.createCellMenu('d_fill', 'bgColor', this.settings.bgColor);
-	var td = $(select[0]).find('table tr td');
+	var td = $(select).find('table tr td');
 	var className, curClass;
 	var selThem;
 
@@ -1201,14 +1150,14 @@ iTable.prototype.bgColor = function() {
 		$('.ui-selected').removeAttr('class');
 
 		selThem.addClass(curClass);
-		removeUied();
+
 	});
 }
 
 //字符对齐
 iTable.prototype.textAlign = function() {
 	var select = this.createCellMenu('f_align', 'textAlign', this.settings.textAlign);
-	var td = $(select[0]).find('table tr td');
+	var td = $(select).find('table tr td');
 	var className, curClass;
 	var selThem;
 	td.css({
@@ -1233,7 +1182,7 @@ iTable.prototype.textAlign = function() {
 		$('.ui-selected').removeAttr('class');
 
 		selThem.addClass(curClass);
-		removeUied();
+
 	});
 
 	td.mouseover(function() {
@@ -1251,7 +1200,7 @@ iTable.prototype.textAlign = function() {
 //公式选择
 iTable.prototype.express = function() {
 	var select = this.createSelection('express', this.settings.express);
-	var sel_a = $(select[0]).find('ul li a');
+	var sel_a = $(select).find('ul li a');
 	var className, curClass;
 	var selThem;
 	var that = this;
@@ -1275,104 +1224,309 @@ iTable.prototype.express = function() {
 
 //列插入
 iTable.prototype.insertCol = function() {
-	var simMenu = this.createSimpleMenu('fbold');
-	var sel_a = $(simMenu[0]).children(0);
-	
-	var that=this;
+	var simMenu = this.createSimpleMenu('', '插入列');
+	var sel_a = $(simMenu).children(0);
+
+	var that = this;
 	sel_a.on('click', function() {
 		var sNode = $('.ui-selected');
+		var xArr = [],
+			yArr = [];
+		var xMax, xMin, yMax, yMin;
 		if(sNode.length >= 2) {
+			for(var i = 0; i < sNode.length; i++) {
+				var cols = parseInt(sNode.eq(i).attr('cols'));
+				var rows = parseInt(sNode.eq(i).attr('rows'));
+				var cAdd = parseInt(sNode.eq(i).attr('colspan')) || 1;
+				var rAdd = parseInt(sNode.eq(i).attr('rowspan')) || 1;
+				cols = cols + cAdd - 1;
+				rows = rows + rAdd - 1;
+				xArr.push(cols);
+				yArr.push(rows);
+				xMax = xArr.max(), xMin = xArr.min(), yMax = yArr.max(), yMin = yArr.min();
 
-		} else {
-			var index = parseInt(sNode.attr('cols'));
-			for(var i = 0; i < that.rowCount+1;i++)  {
-				var time = 0;
-				for(var j = index; j > -1; j--) {
-					
-                    var cols=parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('cols'));
-					if(cols==index){
-						var cspan=parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan'))||1;
-						if(cspan>=2){
-							$('td[cols=' + j + '][rows=' + i + ']').attr('colspan',cspan+1);
-						}else{
-							$('td[cols=' + j + '][rows=' + i + ']').after('<td style="background:orange"></td>');
-						}
-						
-					}else{
-                        if($('td[cols=' + j + '][rows=' + i + ']').length>0){
-                        	time++;
-                        	if(time==1){
-                        		var cspan=parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan'))||1;
-                        		if(cspan>=2){
-							       $('td[cols=' + j + '][rows=' + i + ']').attr('colspan',cspan+1);
-						        }                        		
-                        	}
-                        }
-
-					}
-					
-				}
 			}
 
+			for(var _y = 0; _y < that.rowCount + 1; _y++) {
+				var time = 0;
+				for(var _x = xMin; _x < xMax + 1; _x++) {
+					var index = xMin;
+					if($('td[cols=' + xMin + '][rows=' + _y + ']').length > 0) {
+						$('td[cols=' + xMin + '][rows=' + _y + ']').before('<td style="background:orange"></td>');
+					} else {
+						while(index > -1) {
+							if($('td[cols=' + index + '][rows=' + _y + ']').length > 0) {
+								time++;
+								if(time == 1) {
+									$('td[cols=' + index + '][rows=' + _y + ']').after('<td style="background:orange"></td>');
+
+								}
+								//console.log($('td[cols=' + index + '][rows=' + _y + ']'));
+							}
+
+							index--;
+						}
+						//$('td[cols=' + (xMin - 1) + '][rows=' + _y + ']').after('<td style="background:orange"></td>');
+					}
+
+				}
+			}
+			that.cellCount = that.cellCount + xMax - xMin + 1;
+
+		} else {
+			var xIndex = parseInt(sNode.attr('cols'));
+			var yIndex = parseInt(sNode.attr('rows'));
+			for(var i = 0; i < that.rowCount + 1; i++) {
+				var time = 0;
+
+				for(var j = xIndex; j > -1; j--) { 
+					var cols = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('cols'));
+
+					if(cols == xIndex) {
+						var cspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan')) || 1;
+						var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+						if(cspan >= 2) {
+							$('td[cols=' + j + '][rows=' + i + ']').attr('colspan', cspan + 1);
+							 
+						} else {
+							if(rspan > 1) {
+								for(var r = i; r < i + rspan; r++) {
+									$('td[cols=' + (j - cspan) + '][rows=' + r + ']').after('<td style="background:orange"></td>');
+								}
+
+							} else {
+								$('td[cols=' + j + '][rows=' + i + ']').before('<td style="background:orange"></td>');
+							}
+
+						}
+					} else {
+						if($('td[cols=' + j + '][rows=' + i + ']').length > 0) {							
+							time++;
+							if(time == 1) {
+								var cspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan')) || 1;
+								var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+								if(cspan >= 2) {
+									//不同行拓宽
+									if(!(i < yIndex && (rspan + i) > yIndex)) {
+										$('td[cols=' + j + '][rows=' + i + ']').attr('colspan', cspan + 1);
+									}
+
+								}
+							}
+						} 
+
+					}
+				}
+			}
+			that.cellCount++;
 		}
 		that.setIndex();
+		that.fillTd();
+		that.keyCursor();
+		that.updateTop();
 	});
 
 }
 //行插入
 iTable.prototype.insertRow = function() {
-	var simMenu = this.createSimpleMenu('fbold');
-	var sel_a = $(simMenu[0]).children(0);
-	
-	var that=this;
+	var simMenu = this.createSimpleMenu('', '插入行');
+	var sel_a = $(simMenu).children(0);
+
+	var that = this;
+	sel_a.on('click', function() {
+		var sNode = $('.ui-selected');
+		var xArr = [],
+			yArr = [];
+		var xMax, xMin, yMax, yMin;
+		if(sNode.length >= 2) {
+			for(var i = 0; i < sNode.length; i++) {
+				var cols = parseInt(sNode.eq(i).attr('cols'));
+				var rows = parseInt(sNode.eq(i).attr('rows'));
+				var cAdd = parseInt(sNode.eq(i).attr('colspan')) || 1;
+				var rAdd = parseInt(sNode.eq(i).attr('rowspan')) || 1;
+				cols = cols + cAdd - 1;
+				rows = rows + rAdd - 1;
+				xArr.push(cols);
+				yArr.push(rows);
+				xMax = xArr.max(), xMin = xArr.min(), yMax = yArr.max(), yMin = yArr.min();
+			}
+
+			for(var _y = yMin; _y < yMax + 1; _y++) {
+				var tr = $('<tr></tr>');
+				for(var _x = 0; _x < that.cellCount + 1; _x++) {
+					if($('td[cols=' + _x + '][rows=' + yMin + ']').length > 0) {
+						tr.append('<td style="background:orange"></td>');
+						$('td[cols=' + _x + '][rows=' + yMin + ']').parent().before(tr);
+					} else {
+						$('td[cols=' + (_x - 1) + '][rows=' + yMin + ']').parent().after(tr);
+					}
+				}
+
+			}
+
+		} else {
+			var yIndex = parseInt(sNode.attr('rows'));
+			var xIndex = parseInt(sNode.attr('cols'));
+			for(var i = yIndex; i > -1; i--) {
+				var tr = $('<tr></tr>');
+
+				for(var j = 0; j < that.cellCount + 1; j++) {
+					var rows = $('td[cols=' + j + '][rows=' + i + ']').attr('rows');
+
+					if(rows == yIndex) {
+						var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+						if(rspan >= 2) {
+							$('td[cols=' + j + '][rows=' + i + ']').attr('rowspan', rspan + 1);
+						} else {
+							tr.append('<td style="background:orange"></td>');
+							$('td[cols=' + j + '][rows=' + i + ']').parent().before(tr);
+						}
+					} else {
+						if($('td[cols=' + j + '][rows=' + i + ']').length > 0) {
+
+							var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+							var cspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan')) || 1;
+							if(rspan >= 2) {
+								if(!(j <= xIndex && (cspan + j) >= xIndex)) {
+									$('td[cols=' + j + '][rows=' + i + ']').attr('rowspan', rspan + 1);
+								}
+
+							}
+
+						}
+					}
+				}
+
+			}
+			that.rowCount++;
+		}
+
+		that.setIndex();
+		that.fillTd();
+		that.keyCursor();
+		that.updateLeft();
+	});
+
+}
+//列删除
+iTable.prototype.deleteCol = function() {
+	var simMenu = this.createSimpleMenu('', '删除列');
+	var sel_a = $(simMenu).children(0);
+
+	var that = this;
+	sel_a.on('click', function() {
+		var sNode = $('.ui-selected');
+		if(sNode.length >= 2) {
+             
+             	for(var i = 0; i < sNode.length; i++) {
+				var cols = parseInt(sNode.eq(i).attr('cols'));
+				var rows = parseInt(sNode.eq(i).attr('rows'));
+				var cAdd = parseInt(sNode.eq(i).attr('colspan')) || 1;
+				var rAdd = parseInt(sNode.eq(i).attr('rowspan')) || 1;
+				cols = cols + cAdd - 1;
+				rows = rows + rAdd - 1;
+				xArr.push(cols);
+				yArr.push(rows);
+				xMax = xArr.max(), xMin = xArr.min(), yMax = yArr.max(), yMin = yArr.min();
+
+			}
+             
+             
+             
+             
+             
+             
+		} else {
+			var index = parseInt(sNode.attr('cols'));
+			for(var i = 0; i < that.rowCount + 1; i++) {
+				var time = 0;
+				for(var j = index; j > -1; j--) {
+
+					var cols = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('cols'));
+					if(cols == index) {
+						var cspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan')) || 1;
+						if(cspan >= 2) {
+							$('td[cols=' + j + '][rows=' + i + ']').attr('colspan', cspan - 1);
+						} else {
+							$('td[cols=' + j + '][rows=' + i + ']').remove();
+						}
+
+					} else {
+						if($('td[cols=' + j + '][rows=' + i + ']').length > 0) {
+							time++;
+							if(time == 1) {
+								var cspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('colspan')) || 1;
+								if(cspan >= 2) {
+									$('td[cols=' + j + '][rows=' + i + ']').attr('colspan', cspan - 1);
+								}
+							}
+						}
+
+					}
+
+				}
+			}
+			that.cellCount--;
+
+		}
+		that.setIndex();
+		that.fillTd();
+		that.keyCursor();
+		that.updateLeft();
+	});
+
+}
+
+//行删除
+iTable.prototype.deleteRow = function() {
+	var simMenu = this.createSimpleMenu('', '删除行');
+	var sel_a = $(simMenu).children(0);
+
+	var that = this;
 	sel_a.on('click', function() {
 		var sNode = $('.ui-selected');
 		if(sNode.length >= 2) {
 
 		} else {
 			var index = parseInt(sNode.attr('rows'));
-	        for(var i=index;i>-1;i--){
-	        	var tr=$('<tr></tr>');
-	        	//var time = 0;
-	        	for(var j=0;j<that.cellCount;j++){
-	        		var rows=$('td[cols=' + j + '][rows=' + i + ']').attr('rows');
-	        	  
-	        		if(rows==index){
-	        			var rspan=parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan'))||1;
-						if(rspan>=2){
-							$('td[cols=' + j + '][rows=' + i + ']').attr('rowspan',rspan+1);
-						}else{
-							tr.append('<td style="background:orange"></td>');
-							$('td[cols=' + j + '][rows=' + i + ']').parent().after(tr);
-						}
-	        		}else{
-	        			  if($('td[cols=' + j + '][rows=' + i + ']').length>0){
-                        	//time++;
-                        	//if(time==1){
-                        		var rspan=parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan'))||1;
-                        		if(rspan>=2){
-							       $('td[cols=' + j + '][rows=' + i + ']').attr('rowspan',rspan+1);
-						        }                        		
-                        	//}
-                        }
-	        		}
-	        	}
-	        	
-	        	
-	        }
+			for(var i = index; i > -1; i--) {
+				//var tr=$('<tr></tr>');
+				//var time = 0;
+				for(var j = 0; j < that.cellCount; j++) {
+					var rows = $('td[cols=' + j + '][rows=' + i + ']').attr('rows');
 
+					if(rows == index) {
+						var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+						if(rspan >= 2) {
+							$('td[cols=' + j + '][rows=' + i + ']').attr('rowspan', rspan - 1);
+						} else {
+							$('td[cols=' + j + '][rows=' + i + ']').parent().remove();
+						}
+					} else {
+						if($('td[cols=' + j + '][rows=' + i + ']').length > 0) {
+							var rspan = parseInt($('td[cols=' + j + '][rows=' + i + ']').attr('rowspan')) || 1;
+							if(rspan >= 2) {
+								$('td[cols=' + j + '][rows=' + i + ']').attr('rowspan', rspan - 1);
+							}
+
+						}
+					}
+				}
+
+			}
+			that.rowCount--;
 		}
 		that.setIndex();
+		that.fillTd();
+		that.keyCursor();
+		that.updateLeft();
 	});
 
 }
 
-
-
-
 //单元格上的公式区域
 iTable.prototype.formula = function(ways) {
-	removeUied();
+
 	var func = ways;
 	var target = $('.ui-selected')[0];
 	var tmpContent = $(target).text();
@@ -1576,37 +1730,40 @@ iTable.prototype.splitTd = function() {
 
 //创建工具栏下拉菜单
 iTable.prototype.createSelection = function(id, menus) {
-	var selection = $('<div class="toolBox"></div>');
+	var selectionBox = $('<div class="toolBox"></div>');
 	var selectHead = $('<div id="' + id + '"></div>');
-	var selectUl = $('<ul id=""></ul>');
+	var selectUl = $('<ul></ul>');
 	var selectLi, arr = [];
 
 	for(var index in menus) {
 		arr.push(index);
 		selectHead.text(arr[0]);
+		 
 		selectLi = $('<li><a class="' + menus[index] + '">' + index + '</a></li>');
 		selectUl.append(selectLi);
 	}
 	selectHead.after(selectUl);
 
-	selection.append(selectHead);
-	this.tools.append(selection);
+	selectionBox.append(selectHead);
+	this.tools.append(selectionBox);
 	selectUl.hide();
 	selectHead.on('click', function() {
 		selectUl.toggle();
 	});
 
 	selectUl.find('li a').on('click', function() {
-
 		$(selectHead[0]).text($(this).text());
-	})
-	return selection;
+		$(selectHead[0]).attr('curClass',$(this).attr('class')); 
+	});
+	return selectionBox;
 }
 
 //创建工具栏单个菜单
-iTable.prototype.createSimpleMenu = function(className) {
+iTable.prototype.createSimpleMenu = function(className, text) {
 	var menus = $('<div class="toolBox"></div>');
-	var simTool = $('<span class="' + className + '"></span>');
+	var mText = text || '';
+	var mClass = className;
+	var simTool = $('<span class="' + mClass + '">' + mText + '</span>');
 	menus.append(simTool);
 	this.tools.append(menus);
 	return menus;
@@ -1614,7 +1771,7 @@ iTable.prototype.createSimpleMenu = function(className) {
 //创建工具栏格子菜单
 iTable.prototype.createCellMenu = function(dClass, className, menus) {
 
-	var selection = $('<div class="toolBox"></div>');
+	var selectionBox = $('<div class="toolBox"></div>');
 	var selectHead = $('<div class="' + dClass + '"></div>');
 	var selectTb = $('<table class="' + className + '"></table>');
 	var selectTr = $('<tr></tr>');
@@ -1641,15 +1798,15 @@ iTable.prototype.createCellMenu = function(dClass, className, menus) {
 	}
 
 	selectHead.after(selectTb);
-	selection.append(selectHead);
+	selectionBox.append(selectHead);
 
-	this.tools.append(selection);
+	this.tools.append(selectionBox);
 
 	selectTb.hide();
 	selectHead.on('click', function() {
 		selectTb.toggle();
 	});
-	return selection;
+	return selectionBox;
 
 }
 //增加sheet
@@ -1663,16 +1820,11 @@ iTable.prototype.addSheet = function() {
 		var curId = $(".sheetdefault").attr('id');
 		curId = curId.replace('sheet', '');
 		curId = parseInt(curId);
-
 		$("#sheet" + curId).removeClass('sheetdefault');
-
 		var neId = parseInt(curId) + 1;
-
 		$('.sheetqueuedl').append(dd);
 		that.createContent(neId);
 		that.fillTd(neId);
-		that.editRowCol(neId);
-		$("#iTable" + neId).selectable();
 		i++;
 		that.sheetWork();
 
@@ -1688,8 +1840,6 @@ iTable.prototype.sheetWork = function() {
 		dId = parseInt(dId);
 		that.createContent(dId);
 		that.fillTd(dId);
-		that.editRowCol(dId);
-		$("#iTable" + dId).selectable();
 		$(this).addClass('sheetdefault').siblings().removeClass('sheetdefault');
 
 		return false;
@@ -1708,6 +1858,7 @@ iTable.prototype.sheetWork = function() {
 		stInput.height(tdHeight - 2);
 
 		that.html(stInput);
+		stInput.select();
 		$('.stInput').blur(function() {
 			var content = $('.stInput').val();
 
@@ -1816,177 +1967,163 @@ iTable.prototype.setIndex = function() {
 	}
 
 }
-////创建操作行按钮
-//iTable.prototype.remakeRow = function(obj, rowNum, xIndex, yIndex, rowspan, colspan) {
-//	var btnBox = $('<div class="trBtn"></div>');
-//	var addTr = $('<span class="addTr">+</span>');
-//	var delTr = $('<span class="delTr">-</span>');
-//	var _self = this;
-//	var t = this.getCurTable();
-//	var id = (t.attr('id')).replace('iTable', '');
-//	var xIndex = xIndex,
-//		yIndex = yIndex;
-//	var rowSpan = rowspan,
-//		colSpan = colspan;
-//
-//	var targetTd = obj.children(0);
-//	var otherTd = obj.siblings().children(0);
-//	btnBox.append(addTr);
-//	btnBox.append(delTr);
-//
-//	for(var i = 0; i < otherTd.length; i++) {
-//		$(otherTd[i]).children(0).remove();
-//	}
-//
-//	if(targetTd.children(0)) {
-//		targetTd.children(0).remove();
-//	} else {
-//		targetTd.append(btnBox);
-//	}
-//
-//	targetTd.append(btnBox);
-//	addTr.on('click', function() {
-//		//		for(var i = 0; i < rowSpan; i++) {
-//		var tr = _self.createTr();
-//
-//		for(var j = 0; j < _self.cellCount; j++) {
-//			var td = _self.createTd('', '22');
-//			tr.append(td);
-//		}
-//		if(rowSpan == 1) {
-//			$(t).find('tr:eq(' + rowNum + ')').after(tr);
-//		} else {
-//			$(t).find('tr:eq(' + (rowSpan + yIndex - 2) + ')').after(tr);
-//		}
-//
-//		//		}
-//
-//		for(var k = 0; k < rowSpan; k++) {
-//			var ltr = $("<tr></tr>");
-//			var ltd = $("<td></td>");
-//			ltr.append(ltd);
-//			if(rowspan == 1) {
-//				$('.leftTable').find('tr:eq(' + rowNum + ')').after(ltr);
-//			} else {
-//				$('.leftTable').find('tr:eq(' + (rowSpan + yIndex - 2) + ')').after(ltr);
-//
-//			}
-//		}
-//		_self.rowCount++;
-//		_self.remarkLeft($('.leftTable'), rowNum);
-//		_self.setIndex();
-//		_self.fillTd(id);
-//
-//	});
-//	delTr.on('click', function() {
-//		$('.leftTable').find('tr:eq(' + rowNum + ')').remove();
-//
-//		if(rowSpan != 1) {
-//			$("#iTable" + id).find('tr:eq(' + rowNum + ')').remove();
-//			for(var j = rowNum; j < rowSpan + rowNum - 1; j++) {
-//				for(var i = 0; i < colSpan; i++) {
-//
-//					$("#iTable" + id).find('tr:eq(' + j + ')').append($("<td></td>"));
-//
-//				}
-//			}
-//		} else {
-//			$("#iTable" + id).find('tr:eq(' + rowNum + ')').remove();
-//
-//		}
-//		_self.remarkLeft($('.leftTable'), rowNum);
-//		_self.setIndex();
-//		_self.fillTd(id);
-//	});
-//
-//}
-//
-////创建列操作按钮
-//iTable.prototype.remakeCol = function(obj, colNum, xIndex, yIndex, rowspan, colspan, xCoo, yCoo) {
-//	var btnBox = $('<div class="colBtn"></div>');
-//	var addCol = $('<span class="addCol">+</span>');
-//	var delCol = $('<span class="delCol">-</span>');
-//	var _self = this;
-//	var t = this.getCurTable();
-//	var id = (t.attr('id')).replace('iTable', '');
-//
-//	var targetTd = obj;
-//	var otherTd = obj.parent().children(0);
-//	var xIndex = xIndex,
-//		yIndex = yIndex;
-//	var rowSpan = rowspan,
-//		colSpan = colspan;
-//	var xCoo = xCoo;
-//
-//	btnBox.append(addCol);
-//	btnBox.append(delCol);
-//
-//	for(var i = 0; i < otherTd.length; i++) {
-//		$(otherTd[i]).children(0).remove();
-//	}
-//
-//	if(targetTd.children(0)) {
-//		targetTd.children(0).remove();
-//	} else {
-//		targetTd.append(btnBox);
-//	}
-//	targetTd.append(btnBox);
-//
-//	addCol.on('click', function() {
-//
-//		for(var j = 0; j < _self.rowCount; j++) {
-//
-//			var td = _self.createTd('', 'new');
-//			var num = Number(xCoo) + Number(colSpan);
-//
-//			$("[pos='" + j + "-" + num + "']").before(td);
-//		}
-//
-//		var ttd = $("<td></td>");
-//		$('.titleTable').find('tr:eq(0) td:eq(' + colNum + ')').after(ttd);
-//		_self.cellCount++;
-//		_self.remarkTop($('.titleTable'), colNum);
-//
-//		_self.setIndex();
-//		_self.fillTd(id);
-//		_self.editRowCol(id);
-//	});
-//
-//	delCol.on('click', function() {
-//		for(var j = 0; j < _self.rowCount; j++) {
-//			var num = Number(xCoo) + Number(colSpan) - 1;
-//
-//			$("[pos='" + j + "-" + num + "']").remove();
-//
-//		}
-//		$('.titleTable').find('tr td:eq(' + xIndex + ')').remove();
-//		_self.remarkTop($('.titleTable'), colNum);
-//		_self.setIndex();
-//		_self.fillTd(id);
-//		_self.editRowCol(id);
-//	});
-//}
 
-//更新顶部
-iTable.prototype.remarkTop = function(obj, startNum) {
-	var TopTb = obj;
-	var trs = $(TopTb[0]).find('tr td');
-	var trLength = trs.length;
+//y轴更新
+iTable.prototype.updateLeft = function() {
+	var trNum = this.rowCount;
+	$('.leftTable').empty();
+	for(var i = 0; i < this.rowCount; i++) {
+		var tr = $("<tr></tr>");
+		tr.appendTo($(".leftTable"));
+		for(var j = 0; j < 1; j++) {
+			var th = $("<td>" + (i + 1) + "</td>");
+			th.appendTo(tr);
+		}
 
-	for(var i = startNum; i < trLength; i++) {
-		$(trs[i]).text(IntToChr(i));
-	}
-}
-//更新左侧
-iTable.prototype.remarkLeft = function(obj, startNum) {
-	var leftTb = obj;
-	var trs = $(leftTb[0]).find('tr td');
-	var trLength = trs.length;
-	for(var i = startNum; i < trLength; i++) {
-		$(trs[i]).text(i + 1);
 	}
 
 }
+
+//x轴更新
+iTable.prototype.updateTop = function() {
+	var that = this;
+	$('.titleTable').empty();
+
+	for(var i = 0; i < 1; i++) {
+		var tr = $("<tr></tr>");
+		tr.appendTo($(".titleTable"));
+
+		for(var j = 0; j < this.cellCount; j++) {
+			var td = $("<td>" + IntToChr(j) + "</td>");
+			td.appendTo(tr);
+		}
+
+	}
+
+}
+//拖拽放宽列
+iTable.prototype.largeCol=function(){
+     var container=this.container;
+     var that=this;
+     var event=window.event || arguments[0];
+     var exW=$('.yOrder').outerWidth();
+     $('.titleTable tr td').each(function(event){
+     	
+     	$(this).off('mousedown').on('mousedown',function(event){
+     		 
+     	   var td=$(this);
+     	   var index=$(this).index();
+     	   var sline=$('<div class="sline"></div>');
+     	   var lline=$('<div class="lline"></div>');
+     	   var h=$(this).height();
+     	   var w=$(this).width();
+     	   var x=event.clientX-exW;
+     	  
+     	   
+     	   sline.css({
+     	   	'left':x,   
+     	   	'height':h
+     	   });
+     	   
+     	   $(this).append(sline);
+     	   
+     	   $('body').mousemove(function(event){
+     	     var allH=$('.dataTable').outerHeight();
+     	     var l=event.clientX-exW;
+     	     var move=l-x;
+     	     
+     	     
+             if(w+move<20){
+     	   	    return;
+     	     }else{
+     	     	lline.css({    	   	 	
+     	   	 	'height':allH,
+     	   	 	'left':event.clientX      	   
+     	        });
+     	        $('.dataTable colgroup col').eq(index).css('width',w+move);
+     	        $('.titleTable colgroup col').eq(index).css('width',w+move);
+     	         $(container).append(lline);
+     	     }
+     	     
+             
+     	    
+     	   
+     	   });
+     	   
+     	   
+     	   $('body').mouseup(function(event){           
+     	     $('body').off('mousemove');
+     	     $(lline).remove();
+     	     $(sline).remove();
+     	    });
+        });
+        
+     });
+    
+}
+//拖拽放宽行
+iTable.prototype.largeRow=function(){
+     var container=this.container;
+     var that=this;
+     var event=window.event || arguments[0];
+     var exH=$('.yOrder').outerHeight();
+     $('.leftTable tr td').each(function(event){
+     	
+     	$(this).off('mousedown').on('mousedown',function(event){
+     		 
+     	   var td=$(this);
+     	   var index=$(this).parent().index();
+     	    
+     	   var sline=$('<div class="sline"></div>');
+     	   var lline=$('<div class="rline"></div>');
+     	   var h=$(this).height();
+     	   var w=$(this).width();
+     	   var y=event.clientY-exH;
+     	   
+     	   
+     	   sline.css({
+     	   	'top':y,   
+     	   	'height':1,
+     	   	'float':'none',
+     	   	'width':w
+     	   });
+     	   
+     	   $(this).append(sline);
+     	   
+     	   $('body').mousemove(function(event){
+     	     var allW=$('.dataTable').outerWidth();
+     	     var l=event.clientY-exH;
+     	     var move=l-y;
+     	     
+             if(h+move<20){
+     	   	    return;
+     	     }else{
+     	     	lline.css({    	   	 	
+     	   	 	'width':allW,
+     	   	 	'top':event.clientY    	   
+     	        });
+     	     
+     	        $('.dataTable tr th').eq(index).css('height',h+move+1);
+     	        $('.leftTable td').eq(index).css('height',h+move);            
+     	        $(container).append(lline);
+     	     }
+     	        	   
+     	   });
+     	   
+     	   
+     	   $('body').mouseup(function(event){           
+     	     $('body').off('mousemove');
+     	     $(lline).remove();
+     	     $(sline).remove();
+     	    });
+        });
+        
+     });
+    
+}
+
+
+ 
 //创建公式输入框
 iTable.prototype.fillBlank = function() {
 	var fxBox = $('<div class="fx"></div>');
@@ -2014,8 +2151,6 @@ iTable.prototype.fillWork = function() {
 		pValue = ifx.val();
 
 		flReg = /^\=|\+|\-|\*|\/|\(|\)/;
-		//reg = /^\=(((\(*([a-zA-Z]([1-9]\d*))\)*(\+|-|\/|\*))*([a-zA-Z]([1-9]\d*))*\)*)|([a-zA-Z]([1-9]\d*)))/;
-
 		reg = /^\=((((\(*([a-zA-Z]([1-9]\d*))\)*|([1-9]\d*))(\+|-|\/|\*))*(([1-9]\d*)|([a-zA-Z]([1-9]\d*))*\)*))|([a-zA-Z]([1-9]\d*)))/;
 		res = pValue.match(reg);
 
@@ -2062,7 +2197,7 @@ iTable.prototype.fillWork = function() {
 
 		}
 		if((ev.keyCode == 13)) {
-			ifx.blur();
+			this.blur();
 			var allValue = pValue;
 
 			calRes = allValue.match(reg);
@@ -2102,7 +2237,6 @@ iTable.prototype.fillWork = function() {
 iTable.prototype.createMask = function(left, top, width, height, posX, posY) {
 	var mask = $('<div class="mask"></div>');
 	var color = getRandomColor();
-
 	mask.css({
 		'width': width - 2,
 		'height': height - 2,
@@ -2207,14 +2341,14 @@ iTable.prototype.cut = function(dataArr) {
 		$(this).parent().hide();
 		if(tdLength <= 1) {
 			dataArr.length = 0;
-			removeUied();
+
 			var td = $('.ui-selected')[0];
 			dataArr.push($(td).text());
 			$(td).text('');
 		} else {
 			dataArr.length = 0;
 			for(var i = 0; i < tdLength; i++) {
-				removeUied();
+
 				var tds = $('.ui-selected')[i];
 				dataArr.push($(tds));
 				$(tds).text('');
@@ -2236,13 +2370,13 @@ iTable.prototype.copy = function() {
 		$(this).parent().hide();
 		if(tdLength <= 1) {
 			dataArr.length = 0;
-			removeUied();
+
 			var td = $('.ui-selected')[0];
 			dataArr.push($(td).text());
 		} else {
 			dataArr.length = 0;
 			for(var i = 0; i < tdLength; i++) {
-				removeUied();
+
 				var tds = $('.ui-selected')[i];
 				dataArr.push($(tds));
 			}
@@ -2258,7 +2392,7 @@ iTable.prototype.paste = function(dataArr) {
 	});
 	pasteDiv.on('click', function() {
 		$(this).parent().hide();
-		removeUied();
+
 		var tdLength = $('.ui-selected').length;
 		if(tdLength <= 1) {
 			$('.ui-selected').text(dataArr[0]);
@@ -2326,25 +2460,60 @@ iTable.prototype.tdTofx = function(obj) {
 iTable.prototype.getValue = function(arr) {
 	arr = arr.toString();
 
-	var xCoo = arr.replace(/[a-zA-Z]*/, ' ');
-	var yCoo = arr.replace(/[1-9]\d*/, ' ');
+	var xCoo = arr.replace(/[a-zA-Z]*/, ' '),yCoo = arr.replace(/[1-9]\d*/, ' ');
 	yCoo = yCoo.charCodeAt(0) - 96;
-	xCoo--;
-	yCoo--;
+	xCoo--,yCoo--;
 	var value;
-	var text = Number($('[pos="' + xCoo + '-' + yCoo + '"]').text());
+	var text = Number($('td[cols=' + xCoo + '][rows=' + yCoo + ']').text());
 	if(typeof(text) != 'number') {
 		value = 0;
 	} else {
-		if(!!text) {
-			value = Number(text);
-		} else {
-			value = 0;
-		}
-
+		(!!text)?value = Number(text):value = 0;
 	}
-
 	return value;
+}
+
+iTable.prototype.modal=function(_style,_content){
+	var modalBox=$('<div class="itModal"></div>');
+	var mTitle=_style.title;
+	var closeBtn=$('<a class="itModal-close">x</a>');
+	var modalTitle=$('<div class="itModal-title">'+mTitle+'</div>');
+	modalBox.css({
+		'width':parseInt(_style.width),
+		'height':parseInt(_style.width),
+		'position':'absolute',
+		'top':'100px',
+		'left':'500px',
+		'background':'red',
+//		'margin-left':-parseInt(_style.width)/2,
+//		'margin-top':-parseInt(_style.width)/2
+	});
+	modalTitle.append(closeBtn);
+	modalBox.append(modalTitle);
+	$('body').append(modalBox);
+	//modalBox.on('mousedown',this.iDrag(event));
+	this.iDrag(modalBox);
+	 
+	
+}
+
+iTable.prototype.iDrag=function(obj){
+	 var event=window.event || arguments[0];
+	 obj.on('mousedown',function(event){
+	 	 var disX = event.clientX - this.offsetLeft;
+         var disY = event.clientY - this.offsetTop;
+	 	 
+	 	 obj.on('mousemove',function(event){   
+	 	 	obj.css({
+	 	 		'left':event.clientX - disX,
+	 	 		'top':event.clientY - disY
+	 	 	});
+	 	 });
+	 	 
+	 });
+	 obj.on('mouseup',function(){
+	 	obj.off('mousemove');
+	 });
 }
 
 //高亮单元格
@@ -2359,7 +2528,7 @@ function lightTd(tmp) {
 	if(posY == null || posX == null || posY.length == 0 || String(posY).length == 0) {
 		return;
 	}
-	lTd = $("[pos='" + posX + "-" + posY + "']");
+	var lTd = $("[pos='" + posX + "-" + posY + "']");
 	var width = lTd[0].offsetWidth,
 		height = lTd[0].offsetHeight;
 	var left = lTd[0].offsetLeft,
@@ -2457,11 +2626,6 @@ function JSONLength(obj) {
 	return size;
 };
 
-function removeUied() {
-	$('.ui-selectable').find('tbody').removeAttr('class');
-	$('.ui-selectable').find('tr').removeAttr('class');
-}
-
 //数字转字母 27->AA
 function IntToChr(index) {
 	var start = 65;
@@ -2487,6 +2651,44 @@ function containsArray(array, obj) {
 }
 Array.prototype.contains = function(obj) {
 	return containsArray(this, obj);
+}
+
+iTable.prototype.init = function() {
+	var tOption = this.tabs;
+	this.createContent();
+	this.createXaxis();
+	this.createYaxis();
+	this.setCss();
+	this.fillTd();
+	this.tableScroll();
+	this.createTip();
+	this.createFooter();
+	this.createHeader();
+
+	tOption.fontFamily && this.fontFamily();
+	tOption.fontSize && this.fontSize();
+	tOption.fontBold && this.fontBold();
+	tOption.fontItalic && this.fontItalic();
+	tOption.fontOverline && this.fontOverline();
+	tOption.fontColor && this.fontColor();
+	tOption.bgColor && this.bgColor();
+	tOption.mergeTd && this.mergeTd();
+	tOption.splitTd && this.splitTd();
+	tOption.textAlign && this.textAlign();
+
+	this.express();
+	this.insertCol();
+	this.insertRow();
+	this.deleteCol();
+	this.deleteRow();
+
+	this.addSheet();
+	this.sheetMove();
+	this.setIndex();
+	this.fillBlank();
+	this.rMenus();
+	this.frameSelect();
+	this.keyCursor();
 }
 
 var settings = {
@@ -2626,49 +2828,19 @@ var tabs = {
 	fontItalic: true,
 	fontOverline: true,
 	fontBgcolor: true,
-	fontFamily: true,
+	 
 	mergeTd: true,
 	splitTd: true,
 	textAlign: true,
-	editRowCol: true,
 }
 var t = new iTable(box, settings, tabs);
-iTable.prototype.init = function() {
-	var tOption = this.tabs;
-	this.createContent();
-	this.createXaxis();
-	this.createYaxis();
-	this.setCss();
-	this.fillTd();
-	this.tableScroll();
-	this.createTip();
-	this.createFooter();
-	this.createHeader();
-
-	tOption.editRowCol && this.editRowCol();
-	tOption.fontFamily && this.fontFamily();
-	tOption.fontSize && this.fontSize();
-	tOption.fontBold && this.fontBold();
-	tOption.fontItalic && this.fontItalic();
-	tOption.fontOverline && this.fontOverline();
-	tOption.fontColor && this.fontColor();
-	tOption.bgColor && this.bgColor();
-	tOption.mergeTd && this.mergeTd();
-	tOption.splitTd && this.splitTd();
-	tOption.textAlign && this.textAlign();
-
-	this.express();
-	this.insertCol();
-	this.insertRow();
-	this.addSheet();
-	this.sheetMove();
-	this.setIndex();
-	this.fillBlank();
-	this.rMenus();
-	this.frameSelect();
-	//this.typingTd();
-	this.keyCursor();
-}
 
 t.init();
-//$("#iTable1").selectable();
+t._try();
+t.largeCol();
+t.largeRow();
+//t.modal({
+//	width:'300px',
+//	height:'200px',
+//	title:'这是标题',
+//});
